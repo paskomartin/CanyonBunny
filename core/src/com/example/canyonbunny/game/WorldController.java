@@ -6,8 +6,10 @@ import com.badlogic.gdx.InputAdapter;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Sprite;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.utils.Array;
 import com.example.canyonbunny.util.CameraHelper;
 
 import java.security.Key;
@@ -33,28 +35,28 @@ public class WorldController extends InputAdapter{
 
     private void initTestObjects() {
         testSprites = new Sprite[5];
-        // create empty POT-sized pixmap with 8 bit RGBA pixel data
-        int width = 32;
-        int height = 32;
-        Pixmap pixmap = createProceduralPixmap(width, height);
-        // create texture from pixmap data
-        Texture texture = new Texture(pixmap);
-        // create sprites
+        // create a list of texture regions
+        Array<TextureRegion> regions = new Array<TextureRegion>();
+        regions.add(Assets.instance.bunny.head);
+        regions.add(Assets.instance.feather.feather);
+        regions.add(Assets.instance.goldCoin.goldCoin);
+        // create new sprites using a random texture region
         for (int i = 0; i < testSprites.length; ++i) {
-            Sprite spr = new Sprite(texture);
+            Sprite spr = new Sprite(regions.random());
             // define sprite size to be 1m x 1m in game world
             spr.setSize(1, 1);
-            // set origin to center
-            spr.setOrigin(spr.getWidth()/ 2, spr.getHeight() / 2);
-            // random pos
-            float randomX = MathUtils.random(-2.0f, 2.f);
-            float randomY = MathUtils.random(-2.0f, 2.f);
-            spr.setPosition(randomX, randomY);
+            // set origin to the center
+            spr.setOrigin(spr.getWidth() / 2.0f, spr.getHeight() / 2.0f);
+            float x = MathUtils.random(-2.0f, 2.0f);
+            float y = MathUtils.random(-2.0f, 2.0f);
+            spr.setPosition(x, y);
             testSprites[i] = spr;
         }
         selectedSprite = 0;
+
     }
 
+    @Deprecated
     private Pixmap createProceduralPixmap(int width, int height) {
         Pixmap pixmap = new Pixmap(width, height, Pixmap.Format.RGBA8888);
         // red 50% opacity
@@ -138,7 +140,7 @@ public class WorldController extends InputAdapter{
 
     private void moveSelectedSprite(float x, float y) {
         testSprites[selectedSprite].translate(x, y);
-        
+
     }
 
     private void updateTestObjects(float deltaTime) {
