@@ -11,16 +11,17 @@ import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Array;
 import com.example.canyonbunny.util.CameraHelper;
+import com.example.canyonbunny.util.Constants;
 
 import java.security.Key;
 
 public class WorldController extends InputAdapter{
     private static final String TAG = WorldController.class.getName();
-
     public CameraHelper cameraHelper;
 
-    public Sprite[] testSprites;
-    public int selectedSprite;
+    public Level level;
+    public int lives;
+    public int score;
 
 
     public WorldController() {
@@ -30,30 +31,13 @@ public class WorldController extends InputAdapter{
     private void init() {
         Gdx.input.setInputProcessor(this);
         cameraHelper = new CameraHelper();
-        initTestObjects();
+        lives = Constants.LIVES_START;
+        initLevel();
     }
 
-    private void initTestObjects() {
-        testSprites = new Sprite[5];
-        // create a list of texture regions
-        Array<TextureRegion> regions = new Array<TextureRegion>();
-        regions.add(Assets.instance.bunny.head);
-        regions.add(Assets.instance.feather.feather);
-        regions.add(Assets.instance.goldCoin.goldCoin);
-        // create new sprites using a random texture region
-        for (int i = 0; i < testSprites.length; ++i) {
-            Sprite spr = new Sprite(regions.random());
-            // define sprite size to be 1m x 1m in game world
-            spr.setSize(1, 1);
-            // set origin to the center
-            spr.setOrigin(spr.getWidth() / 2.0f, spr.getHeight() / 2.0f);
-            float x = MathUtils.random(-2.0f, 2.0f);
-            float y = MathUtils.random(-2.0f, 2.0f);
-            spr.setPosition(x, y);
-            testSprites[i] = spr;
-        }
-        selectedSprite = 0;
-
+    private void initLevel() {
+        score = 0;
+        level = new Level(Constants.LEVEL_01);
     }
 
     @Deprecated
@@ -74,25 +58,10 @@ public class WorldController extends InputAdapter{
 
     public void update(float deltaTime) {
         handleDebugInput(deltaTime);
-        updateTestObjects(deltaTime);
         cameraHelper.update(deltaTime);
     }
 
     private void handleDebugInput(float deltaTime) {
-        float sprMoveSpeed = 5 * deltaTime;
-        if (Gdx.input.isKeyPressed(Input.Keys.A)) {
-            moveSelectedSprite(-sprMoveSpeed, 0);
-        }
-        if (Gdx.input.isKeyPressed(Input.Keys.D)) {
-            moveSelectedSprite(sprMoveSpeed, 0);
-        }
-        if (Gdx.input.isKeyPressed(Input.Keys.W)) {
-            moveSelectedSprite(0, sprMoveSpeed);
-        }
-        if (Gdx.input.isKeyPressed(Input.Keys.S)) {
-            moveSelectedSprite(0, -sprMoveSpeed);
-        }
-
         // camera move controls
         float camMoveSpeed = 5 * deltaTime;
         float camMoveSpeeAccelerationFactor = 5;
@@ -138,36 +107,13 @@ public class WorldController extends InputAdapter{
         cameraHelper.setPosition(x, y);
     }
 
-    private void moveSelectedSprite(float x, float y) {
-        testSprites[selectedSprite].translate(x, y);
-
-    }
-
-    private void updateTestObjects(float deltaTime) {
-        float rotation = testSprites[selectedSprite].getRotation();
-        // rotate sprite by 90 degrees per second
-        rotation += 90 * deltaTime;
-        rotation %= 360;
-        testSprites[selectedSprite].setRotation(rotation);
-    }
-
     @Override
     public boolean keyUp(int keycode) {
         if (keycode == Input.Keys.R) {
             init();
             Gdx.app.debug(TAG, "Game world resetted");
         }
-        else if (keycode == Input.Keys.SPACE) {
-            selectedSprite = (selectedSprite + 1) % testSprites.length;
-            if (cameraHelper.hasTarget()) {
-                cameraHelper.setTarget(testSprites[selectedSprite]);
-            }
-            Gdx.app.debug(TAG, "Sprite #" + selectedSprite + " selected");
-        }
-        else if (keycode == Input.Keys.ENTER) {
-            cameraHelper.setTarget(cameraHelper.hasTarget() ? null : testSprites[selectedSprite]);
-            Gdx.app.debug(TAG, "Camera follow enabled: " + cameraHelper.hasTarget());
-        }
+
 
         return false;
     }
