@@ -3,7 +3,9 @@ package com.example.canyonbunny.game.objects;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.example.canyonbunny.game.Assets;
+import com.example.canyonbunny.util.CharacterSkin;
 import com.example.canyonbunny.util.Constants;
+import com.example.canyonbunny.util.GamePreferences;
 
 import org.omg.CORBA.PUBLIC_MEMBER;
 
@@ -147,6 +149,10 @@ public class BunnyHead extends AbstractGameObject {
     @Override
     public void render(SpriteBatch batch) {
         TextureRegion reg = regHead;
+
+        // apply skin color
+        batch.setColor(CharacterSkin.values()[GamePreferences.instance.charSkin].getColor());
+
         if (hasFeatherPowerup) {
             batch.setColor(1.0f, 0.8f, 0, 1.0f);
         }

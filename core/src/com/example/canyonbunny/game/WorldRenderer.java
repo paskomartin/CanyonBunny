@@ -1,5 +1,6 @@
 package com.example.canyonbunny.game;
 
+import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
@@ -7,6 +8,7 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.Disposable;
 import com.example.canyonbunny.util.Constants;
+import com.example.canyonbunny.util.GamePreferences;
 
 public class WorldRenderer implements Disposable {
     private OrthographicCamera camera;
@@ -50,7 +52,9 @@ public class WorldRenderer implements Disposable {
         renderGuiScore(batch);
         renderGuiFeatherPowerup(batch);
         renderGuiExtraLive(batch);
-        renderGuiFpsCounter(batch);
+        if (GamePreferences.instance.showFpsCounter) {
+            renderGuiFpsCounter(batch);
+        }
         renderGuiGameOverMessage(batch);
         batch.end();
     }

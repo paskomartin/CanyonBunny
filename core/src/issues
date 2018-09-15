@@ -1,0 +1,5 @@
+Issue 01 - [DESKTOP] [FIXED] Crash when GameScreen is game over and worldControler want to change
+ screen during render frame.  Screen should be change in GameScreen ONLY on the end of a render frame.
+ KeyUp situation doesn't matter, because Game class at first checks inputs and then render frame.
+
+Issue 02 - Skin JSON fixed: https://www.badlogicgames.com/wordpress/?p=3110

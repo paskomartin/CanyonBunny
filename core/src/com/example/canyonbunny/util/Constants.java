@@ -19,4 +19,14 @@ public class Constants {
     public static final float ITEM_FEATHER_POWERUP_DURATION = 9.0f;
 
     public static final float TIME_DELAY_GAME_OVER = 3;
+
+    public static final String TEXTURE_ATLAS_UI = "images/canyonbunny-ui.pack.atlas";
+
+    public static final String TEXTURE_ATLAS_LIBGDX_UI = "images/uiskin.atlas";
+
+    public static final String SKIN_LIBGDX_UI = "images/uiskin.json";
+
+    public static final String SKIN_CANYONBUNNY_UI = "images/canyonbunny-ui.json";
+
+    public static final String PREFERENCES = "canyonbunny.prefs";
 }

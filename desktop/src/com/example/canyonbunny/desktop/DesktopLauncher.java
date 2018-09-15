@@ -2,6 +2,7 @@ package com.example.canyonbunny.desktop;
 
 import com.badlogic.gdx.backends.lwjgl.LwjglApplication;
 import com.badlogic.gdx.backends.lwjgl.LwjglApplicationConfiguration;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.tools.texturepacker.TexturePacker;
 import com.example.canyonbunny.CanyonBunnyMain;
 
@@ -27,6 +28,7 @@ public class DesktopLauncher {
 			settings.duplicatePadding = false;
 			settings.debug = drawDebugOutline;
 			TexturePacker.process(settings,"../../desktop/src/assets-raw/images", "images", "canyonbunny.pack");
+			TexturePacker.process(settings,"../../desktop/src/assets-raw/images-ui", "images-ui", "canyonbunny-ui.pack");
 		}
 	}
 }
