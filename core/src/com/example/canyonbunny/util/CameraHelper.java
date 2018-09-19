@@ -15,17 +15,21 @@ public class CameraHelper {
     private float zoom;
 
     private AbstractGameObject target;
+    private final float FOLLOW_SPEED = 4.0f;
+
 
     public CameraHelper() {
         position = new Vector2();
         zoom = 1.0f;
     }
 
+
     public void update(float deltaTime) {
         if (!hasTarget()) return;
 
-        position.x = target.position.x + target.origin.x;
-        position.y = target.position.y + target.origin.y;
+        //position.x = target.position.x + target.origin.x;
+        //position.y = target.position.y + target.origin.y;
+        position.lerp(target.position, FOLLOW_SPEED * deltaTime);
 
         // prevent camera from movind donw too far
         position.y = Math.max(-1f, position.y);

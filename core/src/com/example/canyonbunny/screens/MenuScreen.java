@@ -262,7 +262,6 @@ public class MenuScreen extends AbstractGameScreen {
         return tbl;
     }
 
-    // TODO: buildOptWinSkinSelection, page 256
     private Table buildOptWinSkinSelection() {
         Table tbl = new Table();
         tbl.pad(10, 10, 0, 10);
