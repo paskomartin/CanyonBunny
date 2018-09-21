@@ -9,6 +9,7 @@ import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.math.Interpolation;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
@@ -17,7 +18,9 @@ import com.example.canyonbunny.game.objects.BunnyHead;
 import com.example.canyonbunny.game.objects.Feather;
 import com.example.canyonbunny.game.objects.GoldCoin;
 import com.example.canyonbunny.game.objects.Rock;
+import com.example.canyonbunny.screens.DirectedGame;
 import com.example.canyonbunny.screens.MenuScreen;
+import com.example.canyonbunny.screens.transitions.ScreenTransitionSlide;
 import com.example.canyonbunny.util.CameraHelper;
 import com.example.canyonbunny.util.Constants;
 
@@ -27,7 +30,7 @@ import javax.swing.text.html.HTML;
 
 public class WorldController extends InputAdapter{
     private static final String TAG = WorldController.class.getName();
-    private Game game;
+    private DirectedGame game;
     public CameraHelper cameraHelper;
 
     public Level level;
@@ -46,19 +49,17 @@ public class WorldController extends InputAdapter{
 
     /// ---
 
-    public WorldController(Game game) {
+    public WorldController(DirectedGame game) {
         this.game = game;
         init();
     }
 
     private void init() {
-        Gdx.input.setInputProcessor(this);
         cameraHelper = new CameraHelper();
         lives = Constants.LIVES_START;
         livesVisual = lives;
         timeLeftGameOverDelay = 0;
         initLevel();
-
         backtomenu = false;
     }
 
@@ -67,22 +68,6 @@ public class WorldController extends InputAdapter{
         scoreVisual = score;
         level = new Level(Constants.LEVEL_01);
         cameraHelper.setTarget(level.bunnyHead);
-    }
-
-    @Deprecated
-    private Pixmap createProceduralPixmap(int width, int height) {
-        Pixmap pixmap = new Pixmap(width, height, Pixmap.Format.RGBA8888);
-        // red 50% opacity
-        pixmap.setColor(1, 0, 0, 0.5f);
-        pixmap.fill();
-        // draw x shape on square
-        pixmap.setColor(1, 1, 0, 1);
-        pixmap.drawLine(0, 0, width, height);
-        pixmap.drawLine(width, 0, 0, height);
-        // draw border square
-        pixmap.setColor(0, 1, 1, 1);
-        pixmap.drawRectangle(0,0, width, height);
-        return pixmap;
     }
 
     public void update(float deltaTime) {
@@ -153,9 +138,9 @@ public class WorldController extends InputAdapter{
         if (!cameraHelper.hasTarget(level.bunnyHead)) {
             // camera move controls
             float camMoveSpeed = 5 * deltaTime;
-            float camMoveSpeeAccelerationFactor = 5;
+            float camMoveSpeedAccelerationFactor = 5;
             if (Gdx.input.isKeyPressed(Input.Keys.SHIFT_LEFT)) {
-                camMoveSpeed *= camMoveSpeeAccelerationFactor;
+                camMoveSpeed *= camMoveSpeedAccelerationFactor;
             }
             if (Gdx.input.isKeyPressed(Input.Keys.LEFT)) {
                 moveCamera(-camMoveSpeed, 0);
@@ -209,7 +194,8 @@ public class WorldController extends InputAdapter{
             Gdx.app.debug(TAG, "Camera follow enabled: " + cameraHelper.hasTarget());
         }
         else if (keycode == Input.Keys.ESCAPE || keycode == Input.Keys.BACK) {
-            backToMenu();
+            backtomenu = true;
+            //backToMenu();
         }
 
         return false;
@@ -310,9 +296,11 @@ public class WorldController extends InputAdapter{
     }
 
     public void backToMenu() {
+        ScreenTransitionSlide transition = ScreenTransitionSlide.init(0.75f,
+                ScreenTransitionSlide.DOWN, false, Interpolation.bounceOut);
         // switch to menu screen
-        backtomenu = true;
-        game.setScreen(new MenuScreen(game));
+        game.setScreen(new MenuScreen(game), transition);
+        backtomenu = false;
     }
 
     public  boolean backtomenu = true;

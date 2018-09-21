@@ -1,26 +1,25 @@
 package com.example.canyonbunny;
 
 import com.badlogic.gdx.Application;
-import com.badlogic.gdx.ApplicationAdapter;
-import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.assets.AssetManager;
-import com.badlogic.gdx.graphics.GL20;
-import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.math.Interpolation;
 import com.example.canyonbunny.game.Assets;
-import com.example.canyonbunny.game.WorldController;
-import com.example.canyonbunny.game.WorldRenderer;
+import com.example.canyonbunny.screens.DirectedGame;
 import com.example.canyonbunny.screens.MenuScreen;
+import com.example.canyonbunny.screens.transitions.ScreenTransition;
+import com.example.canyonbunny.screens.transitions.ScreenTransitionSlice;
 
-public class CanyonBunnyMain extends Game {
+public class CanyonBunnyMain extends DirectedGame {
 
 	@Override
 	public void create () {
-		Gdx.app.setLogLevel(Application.LOG_INFO);
+		Gdx.app.setLogLevel(Application.LOG_DEBUG);
 		// load assets
 		Assets.instance.init(new AssetManager());
 		// start game at menu screen
-		setScreen(new MenuScreen(this));
+		ScreenTransition transition = ScreenTransitionSlice.init(2, ScreenTransitionSlice.UP_DOWN,
+				10, Interpolation.pow5Out);
+		setScreen(new MenuScreen(this), transition);
 	}
 }
