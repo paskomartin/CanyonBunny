@@ -26,6 +26,7 @@ import com.example.canyonbunny.game.Assets;
 import com.example.canyonbunny.screens.transitions.ScreenTransition;
 import com.example.canyonbunny.screens.transitions.ScreenTransitionFade;
 import com.example.canyonbunny.screens.transitions.ScreenTransitionSlide;
+import com.example.canyonbunny.util.AudioManager;
 import com.example.canyonbunny.util.CharacterSkin;
 import com.example.canyonbunny.util.Constants;
 import com.example.canyonbunny.util.GamePreferences;
@@ -369,12 +370,14 @@ public class MenuScreen extends AbstractGameScreen {
     private void onSaveClicked() {
         saveSettings();
         onCancelClicked();
+        AudioManager.instance.onSettingUpdated();
     }
 
     private void onCancelClicked() {
         btnMenuPlay.setVisible(true);
         btnMenuOptions.setVisible(true);
         winOptions.setVisible(false);
+        AudioManager.instance.onSettingUpdated();
     }
 
     @Override
