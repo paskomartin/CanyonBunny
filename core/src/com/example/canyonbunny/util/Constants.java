@@ -29,4 +29,18 @@ public class Constants {
     public static final String SKIN_CANYONBUNNY_UI = "images/canyonbunny-ui.json";
 
     public static final String PREFERENCES = "canyonbunny.prefs";
+
+    public static final int CARROTS_SPAWN_MAX = 100;
+
+    public static final float CARROTS_SPAWN_RADIUS = 3.5f;
+
+    public static final float TIME_DELAY_GAME_FINISHED = 6;
+
+    public static final String shaderMonochromeVertex = "shaders/monochrome.vs";
+
+    public static final String getShaderMonochromeFragment = "shaders/monochrome.fs";
+
+    public static final float ACCEL_ANGLE_DEAD_ZONE = 5.0f;
+
+    public static final float ACCEL_MAX_ANGLE_MAX_MOVEMENT = 20.0f;
 }

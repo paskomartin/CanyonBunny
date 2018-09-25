@@ -18,6 +18,8 @@ public class Assets implements Disposable, AssetErrorListener {
     public static final Assets instance = new Assets();
     private AssetManager assetManager;
 
+//    public Body body;
+
     public AssetBunny bunny;
     public AssetRock rock;
     public AssetGoldCoin goldCoin;
@@ -188,6 +190,8 @@ public class Assets implements Disposable, AssetErrorListener {
         public final TextureAtlas.AtlasRegion mountainLeft;
         public final TextureAtlas.AtlasRegion mountainRight;
         public final TextureAtlas.AtlasRegion waterOverlay;
+        public final TextureAtlas.AtlasRegion carrot;
+        public final TextureAtlas.AtlasRegion goal;
 
         public AssetLevelDecoration(TextureAtlas atlas) {
             cloud01 = atlas.findRegion("cloud01");
@@ -196,6 +200,8 @@ public class Assets implements Disposable, AssetErrorListener {
             mountainLeft = atlas.findRegion("mountain_left");
             mountainRight = atlas.findRegion("mountain_right");
             waterOverlay = atlas.findRegion("water_overlay");
+            carrot = atlas.findRegion("carrot");
+            goal = atlas.findRegion("goal");
         }
     }
 }

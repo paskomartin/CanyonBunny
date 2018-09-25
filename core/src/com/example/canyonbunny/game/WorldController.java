@@ -1,20 +1,22 @@
 package com.example.canyonbunny.game;
 
 import com.badlogic.gdx.Application;
-import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputAdapter;
-import com.badlogic.gdx.graphics.Pixmap;
-import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.g2d.Sprite;
-import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Interpolation;
 import com.badlogic.gdx.math.MathUtils;
+import com.badlogic.gdx.math.Polygon;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
-import com.badlogic.gdx.utils.Array;
+import com.badlogic.gdx.physics.box2d.Body;
+import com.badlogic.gdx.physics.box2d.BodyDef;
+import com.badlogic.gdx.physics.box2d.FixtureDef;
+import com.badlogic.gdx.physics.box2d.PolygonShape;
+import com.badlogic.gdx.physics.box2d.World;
+import com.badlogic.gdx.utils.Disposable;
 import com.example.canyonbunny.game.objects.BunnyHead;
+import com.example.canyonbunny.game.objects.Carrot;
 import com.example.canyonbunny.game.objects.Feather;
 import com.example.canyonbunny.game.objects.GoldCoin;
 import com.example.canyonbunny.game.objects.Rock;
@@ -24,12 +26,11 @@ import com.example.canyonbunny.screens.transitions.ScreenTransitionSlide;
 import com.example.canyonbunny.util.AudioManager;
 import com.example.canyonbunny.util.CameraHelper;
 import com.example.canyonbunny.util.Constants;
+import com.sun.scenario.effect.impl.prism.PrImage;
 
-import java.security.Key;
+public class WorldController extends InputAdapter
+    implements Disposable {
 
-import javax.swing.text.html.HTML;
-
-public class WorldController extends InputAdapter{
     private static final String TAG = WorldController.class.getName();
     private DirectedGame game;
     public CameraHelper cameraHelper;
@@ -47,6 +48,10 @@ public class WorldController extends InputAdapter{
     public float livesVisual;
     public float scoreVisual;
 
+    private boolean goalReached;
+    public World b2world;
+
+    private boolean accelerometerAvailable;
 
     /// ---
 
@@ -56,6 +61,7 @@ public class WorldController extends InputAdapter{
     }
 
     private void init() {
+        accelerometerAvailable = Gdx.input.isPeripheralAvailable(Input.Peripheral.Accelerometer);
         cameraHelper = new CameraHelper();
         lives = Constants.LIVES_START;
         livesVisual = lives;
@@ -67,13 +73,43 @@ public class WorldController extends InputAdapter{
     private void initLevel() {
         score = 0;
         scoreVisual = score;
+        goalReached = false;
         level = new Level(Constants.LEVEL_01);
         cameraHelper.setTarget(level.bunnyHead);
+        initPhysics();
+    }
+
+    private void initPhysics() {
+        if (b2world != null) {
+            b2world.dispose();
+        }
+
+        b2world = new World(new Vector2(0, -9.81f), true);
+
+        // Rocks
+        Vector2 origin = new Vector2();
+        for(Rock rock : level.rocks) {
+            BodyDef bodyDef = new BodyDef();
+            bodyDef.type = BodyDef.BodyType.KinematicBody;
+            bodyDef.position.set(rock.position);
+            Body body = b2world.createBody(bodyDef);
+            rock.body = body;
+
+            PolygonShape polygonShape = new PolygonShape();
+            origin.x = rock.bounds.width / 2.0f;
+            origin.y = rock.bounds.height / 2.0f;
+            polygonShape.setAsBox(rock.bounds.width / 2.0f, rock.bounds.height / 2.0f, origin, 0);
+
+            FixtureDef fixtureDef = new FixtureDef();
+            fixtureDef.shape = polygonShape;
+            body.createFixture(fixtureDef);
+            polygonShape.dispose();
+        }
     }
 
     public void update(float deltaTime) {
         handleDebugInput(deltaTime);
-        if (isGameOver()) {
+        if (isGameOver() || goalReached) {
             timeLeftGameOverDelay -= deltaTime;
             if (timeLeftGameOverDelay < 0) {
                 // Issue 01 fixed
@@ -87,6 +123,7 @@ public class WorldController extends InputAdapter{
         }
         level.update(deltaTime);
         testCollisions();
+        b2world.step(deltaTime, 8, 3);
         cameraHelper.update(deltaTime);
         if (!isGameOver() && isPlayerInWater()) {
             AudioManager.instance.play(Assets.instance.sounds.liveLost);
@@ -118,7 +155,28 @@ public class WorldController extends InputAdapter{
             }
             else {
                 // execute auto-forward movement on non-desktop platform
+                /*
                 if (Gdx.app.getType() != Application.ApplicationType.Desktop) {
+                    level.bunnyHead.velocity.x = level.bunnyHead.terminalVelocity.x;
+                 */
+                /// use accelerometer
+                if (accelerometerAvailable) {
+                    // normalize accelerometer values form -10 10 to -1, 1
+                    // which translate to rotation -90, 90 degrees
+                    float amount = Gdx.input.getAccelerometerY() / 10.f;
+                    amount *= 90.f;
+                    // is angle of rotation inside dead zone
+                    if (Math.abs(amount) < Constants.ACCEL_ANGLE_DEAD_ZONE) {
+                        amount = 0;
+                    }
+                    else  {
+                        // use the defined max angle of rotation instead of full 90 degrees
+                        // for max velocity
+                        amount /= Constants.ACCEL_MAX_ANGLE_MAX_MOVEMENT;
+                    }
+                    level.bunnyHead.velocity.x = level.bunnyHead.terminalVelocity.x * amount;
+                }
+                else if (Gdx.app.getType() != Application.ApplicationType.Desktop) {
                     level.bunnyHead.velocity.x = level.bunnyHead.terminalVelocity.x;
                 }
             }
@@ -244,6 +302,16 @@ public class WorldController extends InputAdapter{
             onCollisionBunnyWithFeather(feather);
             break;
         }
+
+        // bunny <-> goal
+        if (!goalReached) {
+            r2.set(level.goal.bounds);
+            r2.x += level.goal.position.x;
+            r2.y += level.goal.position.y;
+            if (r1.overlaps(r2)) {
+                onCollisionBunnyWithGoal();
+            }
+        }
     }
 
     private void onCollisionBunnyHeadWithRock(Rock rock) {
@@ -312,5 +380,57 @@ public class WorldController extends InputAdapter{
     public boolean isBackToMenu() {
         return backtomenu;
     }
+
+    private void spawnCarrots(Vector2 pos, int numCarrots, float radius) {
+        float carrotShapeScale = 0.5f;
+        for(int i = 0; i < numCarrots; ++i) {
+            Carrot carrot = new Carrot();
+            // random spawn
+            float x = MathUtils.random(-radius, radius);
+            float y = MathUtils.random(5.0f, 15.0f);
+            float rotation = MathUtils.random(0.0f, 360.f) * MathUtils.degreesToRadians;
+            float carrotScale = MathUtils.random(0.5f, 1.5f);
+            carrot.scale.set(carrotScale, carrotScale);
+
+            BodyDef bodyDef = new BodyDef();
+            bodyDef.position.set(pos);
+            bodyDef.position.add(x, y);
+            bodyDef.angle = rotation;
+            Body body = b2world.createBody(bodyDef);
+            body.setType(BodyDef.BodyType.DynamicBody);
+            carrot.body = body;
+
+            PolygonShape polygonShape = new PolygonShape();
+            float halfWidth = carrot.bounds.width / 2.0f * carrotScale;
+            float halfHeight = carrot.bounds.height / 2.0f * carrotScale;
+            polygonShape.setAsBox(halfWidth * carrotShapeScale, halfHeight * carrotShapeScale);
+
+            FixtureDef fixtureDef = new FixtureDef();
+            fixtureDef.shape = polygonShape;
+            fixtureDef.density = 50;
+            fixtureDef.restitution = .5f;
+            fixtureDef.friction = .5f;
+            body.createFixture(fixtureDef);
+            polygonShape.dispose();
+
+            level.carrots.add(carrot);
+        }
+    }
+
+    private void onCollisionBunnyWithGoal() {
+        goalReached = true;
+        timeLeftGameOverDelay = Constants.TIME_DELAY_GAME_FINISHED;
+        Vector2 centerPosBunnyHead = new Vector2(level.bunnyHead.position);
+        centerPosBunnyHead.x += level.bunnyHead.bounds.width;
+        spawnCarrots(centerPosBunnyHead, Constants.CARROTS_SPAWN_MAX, Constants.CARROTS_SPAWN_RADIUS);
+    }
+
+    @Override
+    public void dispose() {
+        if (b2world != null) {
+            b2world.dispose();
+        }
+    }
+
 
 }
