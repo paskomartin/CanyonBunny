@@ -16,7 +16,7 @@ public class CanyonBunnyMain extends DirectedGame {
 
 	@Override
 	public void create () {
-		Gdx.app.setLogLevel(Application.LOG_DEBUG);
+		Gdx.app.setLogLevel(Application.LOG_ERROR);
 		// load assets
 		Assets.instance.init(new AssetManager());
 

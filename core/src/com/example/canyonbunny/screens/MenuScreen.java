@@ -1,12 +1,14 @@
 package com.example.canyonbunny.screens;
 
-import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.math.Interpolation;
+import com.badlogic.gdx.scenes.scene2d.actions.Actions;
+import com.badlogic.gdx.scenes.scene2d.actions.SequenceAction;
+import com.badlogic.gdx.scenes.scene2d.Touchable;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Button;
@@ -25,7 +27,6 @@ import com.badlogic.gdx.utils.viewport.StretchViewport;
 import com.example.canyonbunny.game.Assets;
 import com.example.canyonbunny.screens.transitions.ScreenTransition;
 import com.example.canyonbunny.screens.transitions.ScreenTransitionFade;
-import com.example.canyonbunny.screens.transitions.ScreenTransitionSlide;
 import com.example.canyonbunny.util.AudioManager;
 import com.example.canyonbunny.util.CharacterSkin;
 import com.example.canyonbunny.util.Constants;
@@ -123,6 +124,47 @@ public class MenuScreen extends AbstractGameScreen {
 
     }
 
+    private void showMenuButtons(boolean visible) {
+        float moveDuration = 1.0f;
+        Interpolation moveEasing = Interpolation.swing;
+        float delayOptionsButton = 0.25f;
+
+        float moveX = 300 * (visible ? - 1 : 1);
+        float moveY = 0;
+        final Touchable touchEnabled = visible ? Touchable.enabled : Touchable.disabled;
+
+        btnMenuPlay.addAction(
+                Actions.moveBy(moveX,moveY,moveDuration,moveEasing)
+        );
+        btnMenuOptions.addAction(Actions.sequence(
+                Actions.delay(delayOptionsButton),
+                Actions.moveBy(moveX,moveY,moveDuration,moveEasing)
+        ));
+
+        SequenceAction seq = Actions.sequence();
+        if (visible) {
+            seq.addAction(Actions.delay(delayOptionsButton + moveDuration));
+        }
+        seq.addAction(Actions.run(new Runnable() {
+            @Override
+            public void run() {
+                btnMenuPlay.setTouchable(touchEnabled);
+                btnMenuOptions.setTouchable(touchEnabled);
+            }
+        }));
+        stage.addAction(seq);
+    }
+
+    private void showOptionsWindow(boolean visible, boolean animated) {
+        float alphaTo = visible ? 0.8f : 0.0f;
+        float duration = animated ? 1.0f : 0.0f;
+        Touchable touchEnabled = visible ? Touchable.enabled : Touchable.disabled;
+        winOptions.addAction(Actions.sequence(
+                Actions.touchable(touchEnabled),
+                Actions.alpha(alphaTo, duration)
+        ));
+    }
+
     private void rebuildStage() {
         skinCanyonBunny = new Skin( Gdx.files.internal(Constants.SKIN_CANYONBUNNY_UI),
                 new TextureAtlas(Constants.TEXTURE_ATLAS_UI));
@@ -163,11 +205,31 @@ public class MenuScreen extends AbstractGameScreen {
         // coins
         imgCoins = new Image(skinCanyonBunny, "coins");
         layer.addActor(imgCoins);
-        imgCoins.setPosition(135, 80);
+        imgCoins.setOrigin(imgCoins.getWidth() / 2, imgCoins.getHeight() / 2);
+        imgCoins.addAction(Actions.sequence(
+                Actions.moveTo(135, -20),
+                Actions.scaleTo(0, 0),
+                Actions.fadeOut(0),
+                Actions.delay(2.5f),
+                Actions.parallel(
+                        Actions.moveBy(0,100,0.5f, Interpolation.swingOut),
+                        Actions.scaleTo(1.0f, 1.0f,0.25f, Interpolation.linear),
+                        Actions.alpha(1.0f, 0.5f)
+                )
+        ));
+        //imgCoins.setPosition(135, 80);
 
+        // bunny
         imgBunny = new Image(skinCanyonBunny, "bunny");
         layer.addActor(imgBunny);
-        imgBunny.setPosition(355, 40);
+        imgBunny.addAction(Actions.sequence(
+                Actions.moveTo(655,510),
+                Actions.delay(4.f),
+                Actions.moveBy(-70, -100,0.5f, Interpolation.fade),
+                Actions.moveBy(-100, -50, 0.5f, Interpolation.fade),
+                Actions.moveBy(-150, -300, 1.f, Interpolation.elasticIn)
+        ));
+        //imgBunny.setPosition(355, 40);
         return layer;
     }
 
@@ -222,9 +284,8 @@ public class MenuScreen extends AbstractGameScreen {
 
     private void onOptionsClicked() {
         loadSettings();
-        btnMenuPlay.setVisible(false);
-        btnMenuOptions.setVisible(false);
-        winOptions.setVisible(true);
+        showMenuButtons(false);
+        showOptionsWindow(true, true);
     }
 
     private Table buildOptionsWindowLayer() {
@@ -235,7 +296,8 @@ public class MenuScreen extends AbstractGameScreen {
         winOptions.add(buildOptWinButtons()).pad(10, 0, 10, 0);
 
         winOptions.setColor(1, 1, 1, 0.8f);
-        winOptions.setVisible(false);
+        //winOptions.setVisible(false);
+        showOptionsWindow(false, false);
         if (debugEnabled) {
             winOptions.debug();
         }
@@ -381,9 +443,8 @@ public class MenuScreen extends AbstractGameScreen {
     }
 
     private void onCancelClicked() {
-        btnMenuPlay.setVisible(true);
-        btnMenuOptions.setVisible(true);
-        winOptions.setVisible(false);
+        showMenuButtons(true);
+        showOptionsWindow(false, true);
         AudioManager.instance.onSettingUpdated();
     }
 
